@@ -10,11 +10,9 @@ app.use(express.json());
 let tasks = [];
 let nextId = 1;
 
-
 app.get("/", (req, res) => {
   res.send("Project Management Backend Running!");
 });
-
 
 app.get("/tasks", (req, res) => {
   res.json(tasks);
@@ -30,7 +28,7 @@ app.post("/tasks", (req, res) => {
   }
 
   const newTask = {
-    id: nextId++,
+    _id: String(nextId++),
     title,
     description: description || "",
     status: status || "Pending"
@@ -40,10 +38,9 @@ app.post("/tasks", (req, res) => {
   res.status(201).json(newTask);
 });
 
-
-app.put("/tasks/:id", (req, res) => {
+app.patch("/tasks/:id", (req, res) => {
   const task = tasks.find(
-    t => t.id === Number(req.params.id)
+    (t) => t._id === req.params.id
   );
 
   if (!task) {
@@ -56,10 +53,9 @@ app.put("/tasks/:id", (req, res) => {
   res.json(task);
 });
 
-
 app.delete("/tasks/:id", (req, res) => {
   const index = tasks.findIndex(
-    t => t.id === Number(req.params.id)
+    (t) => t._id === req.params.id
   );
 
   if (index === -1) {
