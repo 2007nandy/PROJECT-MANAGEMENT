@@ -4,7 +4,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
 const API_URL = "https://project-management-huna.onrender.com";
-
 const App = () => {
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
