@@ -3,19 +3,18 @@ import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
 
+const API_URL = "https://project-management-huna.onrender.com";
+
 const App = () => {
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Fetch tasks
   const fetchTasks = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:5000/tasks"
-      );
-
+        const response = await axios.get(`${API_URL}/tasks`);
+      
       setTasks(response.data);
       setError(null);
     } catch (err) {
@@ -28,7 +27,6 @@ const App = () => {
     fetchTasks();
   }, []);
 
-  // Create a new task
   const createTask = async () => {
     if (!title.trim()) {
       setError("Task title cannot be empty.");
@@ -36,11 +34,10 @@ const App = () => {
     }
 
     try {
-      const response = await axios.post(
-        "http://localhost:5000/tasks",
-        { title }
-      );
-
+         const response = await axios.post(
+  `${API_URL}/tasks`,
+  { title }
+);
       setTasks([...tasks, response.data]);
       setTitle("");
       setError(null);
@@ -53,13 +50,12 @@ const App = () => {
     }
   };
 
-  // Update task status
   const updateTaskStatus = async (id, newStatus) => {
     try {
-      const response = await axios.patch(
-        `http://localhost:5000/tasks/${id}`,
-        { status: newStatus }
-      );
+         const response = await axios.patch(
+  `${API_URL}/tasks/${id}`,
+  { status: newStatus }
+);
 
       setTasks(
         tasks.map((task) =>
@@ -75,12 +71,9 @@ const App = () => {
     }
   };
 
-  // Delete a task
   const deleteTask = async (id) => {
     try {
-      await axios.delete(
-        `http://localhost:5000/tasks/${id}`
-      );
+        await axios.delete(`${API_URL}/tasks/${id}`);
 
       setTasks(
         tasks.filter((task) => task._id !== id)
