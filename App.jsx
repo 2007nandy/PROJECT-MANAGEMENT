@@ -5,7 +5,7 @@ import "./App.css";
 
 const API_URL = "https://project-management-huna.onrender.com";
 const App = () => {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState([]); 
   const [title, setTitle] = useState("");
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
