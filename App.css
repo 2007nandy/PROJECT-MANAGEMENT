@@ -1,39 +1,15 @@
+/* src/App.css */
+/* src/App.css */
+
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Arial', sans-serif;
   background-color: #f8f9fa;
   margin: 0;
   padding: 0;
 }
 
-h1 {
-  margin-bottom: 30px;
-  color: #343a40;
-}
-
-.card {
-  border: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-}
-
-.card-header {
-  background-color: #007bff;
-  color: white;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  padding: 15px;
-}
-
-.input-group {
-  margin-bottom: 20px;
-}
-
-.input-group input {
-  border-radius: 5px 0 0 5px;
-}
-
-.input-group .btn {
-  border-radius: 0 5px 5px 0;
+.input-group.btn {
+  border-radius: 05px5px0;
 }
 
 .alert {
@@ -53,61 +29,85 @@ h1 {
   color: #6c757d;
 }
 
-.btn-group .btn {
+.btn-group.btn {
   margin-right: 5px;
-}
-
-.btn {
-  border-radius: 25px;
-  padding: 10px 20px;
-  transition: all 0.3s ease;
-  font-weight: bold;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #0056b3;
 }
 
 .btn-info {
   background-color: #17a2b8;
-  color: white;
   border: none;
-}
-
-.btn-info:hover {
-  background-color: #138496;
 }
 
 .btn-success {
   background-color: #28a745;
-  color: white;
   border: none;
-}
-
-.btn-success:hover {
-  background-color: #218838;
 }
 
 .btn-danger {
-  background-color: #dc3545;
-  color: white;
-  border: none;
+    background-color: #dc3545;
+    border: none;
 }
 
-.btn-danger:hover {
-  background-color: #c82333;
-}
-
-.btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+.btn:hover {
+  filter: brightness(85%);
 }
 
 .text-muted {
   font-size: 14px;
+}
+
+/* src/App.css */
+
+/* Button Styles */
+.btn {
+  border-radius: 25px; /* Rounded corners for buttons */
+  padding: 10px20px; /* Increased padding for larger buttons */
+  transition: all0.3sease; /* Smooth transition for hover effects */
+  font-weight: bold; /* Bold text for better visibility */
+}
+
+.btn-primary {
+  background-color: #007bff; /* Primary button color */
+  color: white; /* Text color */
+}
+
+.btn-primary:hover {
+  background-color: #0056b3; /* Darker shade on hover */
+}
+
+.btn-info {
+  background-color: #17a2b8; /* Info button color */
+  color: white;
+}
+
+.btn-info:hover {
+  background-color: #138496; /* Darker shade on hover */
+}
+
+.btn-success {
+  background-color: #28a745; /* Success button color */
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #218838; /* Darker shade on hover */
+}
+
+.btn-danger {
+  background-color: #dc3545; /* Danger button color */
+  color: white;
+}
+.btn-danger:hover {
+  background-color: #c82333; /* Darker shade on hover */
+}
+
+/* Button Group Spacing */
+.btn-group.btn {
+  margin-right: 5px; /* Space between buttons in a group */
+}
+
+/* Additional Button Effects */
+.btn:focus {
+  outline: none; /* Remove default outline */
+  box-shadow: 0000.2remrgba(0, 123, 255, 0.25); /* Add a soft glow effect */
 }
