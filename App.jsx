@@ -1,211 +1,152 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "./App.css";
+//src/app.js
 
-const API_URL = "https://project-management-huna.onrender.com";
-const App = () => {
-  const [tasks, setTasks] = useState([]); 
-  const [title, setTitle] = useState("");
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+importReact, { useState, useEffect } from"react";
+importaxiosfrom"axios";
+import'bootstrap/dist/css/bootstrap.min.css';
+import'./App.css';
 
-  const fetchTasks = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/tasks`);
-      
-      setTasks(response.data);
-      setError(null);
-    } catch (err) {
-      setError("Could not fetch tasks.");
-      console.error(err);
-    }
-  };
+constApp= () => {
+ const [tasks, setTasks] =useState([]);
+ const [title, setTitle] =useState("");
+ const [error, setError] =useState(null);
+ const [success, setSuccess] =useState(null);
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
+ // Fetch tasks
+ constfetchTasks=async () => {
+   try {
+     constresponse=awaitaxios.get("http://localhost:5000/tasks");
+     setTasks(response.data);
+   } catch (err) {
+     setError("Could not fetch tasks.");
+     console.error(err);
+   }
+ };
 
-  const createTask = async () => {
-    if (!title.trim()) {
-      setError("Task title cannot be empty.");
-      return;
-    }
+ useEffect(() => {
+  fetchTasks();
+ }, []);
 
-    try {
-         const response = await axios.post(
-  `${API_URL}/tasks`,
-  { title }
-);
-      setTasks([...tasks, response.data]);
-      setTitle("");
-      setError(null);
-      setSuccess("Task created successfully!");
+ // Create a new task
+ constcreateTask=async () => {
+   if(!title.trim()) {
+     setError("Task title cannot be empty.");
+     return;
+   }
+   try {
+     constresponse=awaitaxios.post("http://localhost:5000/tasks", { title });
+     setTasks([...tasks, response.data]);
+    setTitle(""); // Clear input
+    setError(null); // Clear error
+    setSuccess("Task created successfully!"); // Show success message
+    setTimeout(() =>setSuccess(null), 3000); // Clear success message after 3 seconds
+  } catch (err) {
+    setError("Could not create task.");
+    console.error(err);
+  }
+ };
 
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError("Could not create task.");
-      console.error(err);
-    }
-  };
+ // Update task status
+ constupdateTaskStatus=async (id, newStatus) => {
+   try {
+     constresponse=awaitaxios.patch(`http://localhost:5000/tasks/${id}`, { status:newStatus });
+     setTasks(tasks.map(task=> (task._id===id?response.data:task))); // Update task in state
+     setSuccess("Task status updated successfully!");
+     setTimeout(() =>setSuccess(null), 3000); // Clear success message after 3 seconds
+   } catch (err) {
+     setError("Could not update task status.");
+     console.error(err);
+   }
+ };
 
-  const updateTaskStatus = async (id, newStatus) => {
-    try {
-         const response = await axios.patch(
-  `${API_URL}/tasks/${id}`,
-  { status: newStatus }
-);
+ // Delete a task
+ constdeleteTask=async (id) => {
+   try {
+     awaitaxios.delete(`http://localhost:5000/tasks/${id}`);
+     setTasks(tasks.filter(task=>task._id!==id)); // Remove deleted task from state
+     setSuccess("Task deleted successfully!");
+     setTimeout(() =>setSuccess(null), 3000); // Clear success message after 3 seconds
+   } catch (err) {
+     setError("Could not delete task.");
+     console.error(err);
+   }
+ };
 
-      setTasks(
-        tasks.map((task) =>
-          task._id === id ? response.data : task
-        )
-      );
+ return (
+  <divclassName="container mt-5">
+    <h1className="text-center">Task Manager</h1>
 
-      setSuccess("Task status updated successfully!");
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError("Could not update task status.");
-      console.error(err);
-    }
-  };
+   {error&&<divclassName="alert alert-danger">{error}</div>}{/* Show error message */}
+   {success&&<divclassName="alert alert-success">{success}</div>}{/* Show success
+message */}
 
-  const deleteTask = async (id) => {
-    try {
-        await axios.delete(`${API_URL}/tasks/${id}`);
-
-      setTasks(
-        tasks.filter((task) => task._id !== id)
-      );
-
-      setSuccess("Task deleted successfully!");
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      setError("Could not delete task.");
-      console.error(err);
-    }
-  };
-
-  return (
-    <div className="container mt-5">
-      <h1 className="text-center">Task Manager</h1>
-
-      {error && (
-        <div className="alert alert-danger">
-          {error}
+   <divclassName="input-group mb-3">
+    <input
+     type="text"
+     className="form-control"
+     value={title}
+     onChange={(e) =>setTitle(e.target.value)}
+     placeholder="Enter task title"
+    />
+    <buttonclassName="btnbtn-primary"onClick={createTask}>Add Task</button>
+   </div>
+    <divclassName="row">
+     {["Pending", "Ongoing", "Completed"].map((status) => (
+       <divclassName="col-md-4"key={status}>
+        <divclassName="card mb-4">
+          <divclassName="card-header">
+           <h5>{status} Tasks</h5>
+          </div>
+          <divclassName="card-body">
+           {tasks.filter(task=>task.status === status).map((task) => (
+             <TaskCard
+              key={task._id}
+              task={task}
+              onUpdateStatus={updateTaskStatus}
+              onDelete={deleteTask}
+             />
+           ))}
+           {tasks.filter(task=>task.status === status).length === 0&& (
+             <pclassName="text-muted">No tasks in this category.</p>
+           )}
+          </div>
         </div>
-      )}
-
-      {success && (
-        <div className="alert alert-success">
-          {success}
-        </div>
-      )}
-
-      <div className="input-group mb-3">
-        <input
-          type="text"
-          className="form-control"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Enter task title"
-        />
-
+       </div>
+     ))}
+    </div>
+   </div>
+ );
+};
+constTaskCard=({ task, onUpdateStatus, onDelete }) => {
+ return (
+   <divclassName="card mb-2">
+    <divclassName="card-body">
+     <h6className="card-title">{task.title}</h6>
+     <pclassName="card-text">Status: {task.status}</p>
+     <divclassName="btn-group"role="group">
+       {task.status !== "Ongoing"&& (
         <button
-          className="btn btn-primary"
-          onClick={createTask}
+          className="btnbtn-info"
+          onClick={() =>onUpdateStatus(task._id, "Ongoing")}
         >
-          Add Task
+          Mark as Ongoing
         </button>
-      </div>
-
-      <div className="row">
-        {["Pending", "Ongoing", "Completed"].map(
-          (status) => (
-            <div className="col-md-4" key={status}>
-              <div className="card mb-4">
-                <div className="card-header">
-                  <h5>{status} Tasks</h5>
-                </div>
-
-                <div className="card-body">
-                  {tasks
-                    .filter(
-                      (task) => task.status === status
-                    )
-                    .map((task) => (
-                      <TaskCard
-                        key={task._id}
-                        task={task}
-                        onUpdateStatus={updateTaskStatus}
-                        onDelete={deleteTask}
-                      />
-                    ))}
-
-                  {tasks.filter(
-                    (task) => task.status === status
-                  ).length === 0 && (
-                    <p className="text-muted">
-                      No tasks in this category.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )
-        )}
-      </div>
+       )}
+       {task.status !== "Completed"&& (
+        <button
+          className="btnbtn-success"
+          onClick={() =>onUpdateStatus(task._id, "Completed")}
+        >
+          Mark as Completed
+        </button>
+       )}
+       <buttonclassName="btnbtn-danger"onClick={() =>onDelete(task._id)}>
+        Delete Task
+       </button>
+     </div>
     </div>
-  );
+   </div>
+ );
 };
 
-const TaskCard = ({
-  task,
-  onUpdateStatus,
-  onDelete
-}) => {
-  return (
-    <div className="card mb-2">
-      <div className="card-body">
-        <h6 className="card-title">{task.title}</h6>
 
-        <p className="card-text">
-          Status: {task.status}
-        </p>
-
-        <div className="btn-group" role="group">
-          {task.status !== "Ongoing" && (
-            <button
-              className="btn btn-info"
-              onClick={() =>
-                onUpdateStatus(task._id, "Ongoing")
-              }
-            >
-              Mark as Ongoing
-            </button>
-          )}
-
-          {task.status !== "Completed" && (
-            <button
-              className="btn btn-success"
-              onClick={() =>
-                onUpdateStatus(task._id, "Completed")
-              }
-            >
-              Mark as Completed
-            </button>
-          )}
-
-          <button
-            className="btn btn-danger"
-            onClick={() => onDelete(task._id)}
-          >
-            Delete Task
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default App;
+exportdefaultApp;
