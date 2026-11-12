@@ -1,94 +1,124 @@
-// server.js
-// server.js
-constexpress=require("express");
-constmongoose=require("mongoose");
-constcors=require("cors");
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
 
-constapp=express();
+const app = express();
 
-// Middleware
-app.use(cors()); // Enable CORS
-app.use(express.json()); // Parse incoming JSON requests
+const allowedOrigins = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-// Connect to MongoDB (change the connection string as needed)
-mongoose
-  .connect("mongodb://localhost:27017/taskmanager", {})
-  .then(() =>console.log("MongoDB connected"))
-  .catch((err) =>console.log("MongoDB connection error:", err));
+app.use(cors({
+  origin(origin, callback) {
+    // Allow server-to-server tools and local development requests with no Origin.
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("CORS: this origin is not allowed."));
+  },
+}));
+app.use(express.json());
 
-// Define Task Schema and Model
-constTaskSchema=newmongoose.Schema(
+const TaskSchema = new mongoose.Schema(
   {
-    title:{ type:String, required:true },
+    title: { type: String, required: true, trim: true },
     status: {
-      type:String,
+      type: String,
       enum: ["Pending", "Ongoing", "Completed"],
-      default:"Pending",
+      default: "Pending",
     },
   },
-  { timestamps:true }
-); // Added timestamps for createdAt and updatedAt
+  { timestamps: true }
+);
 
-constTask=mongoose.model("Task", TaskSchema);
+const Task = mongoose.model("Task", TaskSchema);
 
-// Routes
-// Get all tasks
-app.get("/tasks", async (req, res) => {
+app.get("/", (_req, res) => {
+  res.send("Task Manager API is running.");
+});
+
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", database: mongoose.connection.readyState === 1 ? "connected" : "disconnected" });
+});
+
+app.get("/tasks", async (_req, res) => {
   try {
-    consttasks=awaitTask.find(); // Fetch all tasks from the database
-    res.json(tasks); // Send the tasks as JSON response
-  } catch (err) {
-    console.error("Error fetching tasks:", err);
-    res.status(500).json({ message:"Server error. Could not fetch tasks." });
+    const tasks = await Task.find().sort({ createdAt: -1 });
+    res.json(tasks);
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    res.status(500).json({ message: "Server error. Could not fetch tasks." });
   }
 });
 
-// Create a new task
 app.post("/tasks", async (req, res) => {
-  const{ title } =req.body;
-  consttask=newTask({ title }); // Create a new task
   try {
-    constnewTask=awaittask.save(); // Save task to the database
-    res.status(201).json(newTask); // Respond with the created task
-  } catch (err) {
-    console.error("Error creating task:", err);
-    res.status(400).json({ message:"Invalid data. Could not create task." });
+    const title = typeof req.body.title === "string" ? req.body.title.trim() : "";
+    if (!title) {
+      return res.status(400).json({ message: "Task title cannot be empty." });
+    }
+    const task = new Task({ title });
+    const savedTask = await task.save();
+    res.status(201).json(savedTask);
+  } catch (error) {
+    console.error("Error creating task:", error);
+    res.status(400).json({ message: "Invalid data. Could not create task." });
   }
 });
 
-// Update task status
 app.patch("/tasks/:id", async (req, res) => {
-  const{ status } =req.body;
   try {
-    constupdatedTask=awaitTask.findByIdAndUpdate(
+    const { status } = req.body;
+    if (!["Pending", "Ongoing", "Completed"].includes(status)) {
+      return res.status(400).json({ message: "Invalid task status." });
+    }
+    const updatedTask = await Task.findByIdAndUpdate(
       req.params.id,
       { status },
-      { new:true }
-    ); // Update task and return the updated task
-    if(!updatedTask)
-      returnres.status(404).json({ message:"Task not found." });
-    res.json(updatedTask); // Respond with the updated task
-  } catch (err) {
-    console.error("Error updating task status:", err);
-    res
-      .status(500)
-      .json({ message:"Server error. Could not update task status." });
+      { new: true, runValidators: true }
+    );
+    if (!updatedTask) {
+      return res.status(404).json({ message: "Task not found." });
+    }
+    res.json(updatedTask);
+  } catch (error) {
+    console.error("Error updating task status:", error);
+    res.status(500).json({ message: "Server error. Could not update task status." });
   }
 });
 
-// Delete a task by ID
 app.delete("/tasks/:id", async (req, res) => {
- try {
-   constdeletedTask=awaitTask.findByIdAndDelete(req.params.id); // Find and delete the task
-   if(!deletedTask)
-     returnres.status(404).json({ message:"Task not found." });
-   res.json({ message:"Task deleted." }); // Respond with a success message
- } catch (err) {
-   console.error("Error deleting task:", err);
-   res.status(500).json({ message:"Server error. Could not delete task." });
- }
+  try {
+    const deletedTask = await Task.findByIdAndDelete(req.params.id);
+    if (!deletedTask) {
+      return res.status(404).json({ message: "Task not found." });
+    }
+    res.json({ message: "Task deleted." });
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    res.status(500).json({ message: "Server error. Could not delete task." });
+  }
 });
 
-// Server configuration
-constPORT=process.env.PORT||5000;
-app.listen(PORT, () =>console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 5000;
+
+async function startServer() {
+  if (!process.env.MONGODB_URI) {
+    console.error("MONGODB_URI is not set. Add it in Render environment variables.");
+    process.exit(1);
+  }
+
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log("MongoDB connected");
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("MongoDB connection failed:", error);
+    process.exit(1);
+  }
+}
+
+startServer();
