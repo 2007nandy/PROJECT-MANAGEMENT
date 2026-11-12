@@ -1,19 +1,12 @@
-/* src/App.css */
-/* src/App.css */
-
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: Arial, sans-serif;
   background-color: #f8f9fa;
   margin: 0;
-  padding: 0;
+  color: #343a40;
 }
 
-.input-group.btn {
-  border-radius: 05px5px0;
-}
-
-.alert {
-  border-radius: 5px;
+.card {
+  border-radius: 8px;
 }
 
 .card-body {
@@ -21,93 +14,27 @@ body {
 }
 
 .card-title {
-  font-weight: bold;
-  margin-bottom: 5px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
 }
 
-.card-text {
+.card-text,
+.text-muted {
   color: #6c757d;
 }
 
-.btn-group.btn {
-  margin-right: 5px;
-}
-
-.btn-info {
-  background-color: #17a2b8;
-  border: none;
-}
-
-.btn-success {
-  background-color: #28a745;
-  border: none;
-}
-
-.btn-danger {
-    background-color: #dc3545;
-    border: none;
+.btn {
+  border-radius: 8px;
+  padding: 8px 14px;
+  transition: filter 0.2s ease;
+  font-weight: 600;
 }
 
 .btn:hover {
-  filter: brightness(85%);
+  filter: brightness(0.9);
 }
 
-.text-muted {
-  font-size: 14px;
-}
-
-/* src/App.css */
-
-/* Button Styles */
-.btn {
-  border-radius: 25px; /* Rounded corners for buttons */
-  padding: 10px20px; /* Increased padding for larger buttons */
-  transition: all0.3sease; /* Smooth transition for hover effects */
-  font-weight: bold; /* Bold text for better visibility */
-}
-
-.btn-primary {
-  background-color: #007bff; /* Primary button color */
-  color: white; /* Text color */
-}
-
-.btn-primary:hover {
-  background-color: #0056b3; /* Darker shade on hover */
-}
-
-.btn-info {
-  background-color: #17a2b8; /* Info button color */
-  color: white;
-}
-
-.btn-info:hover {
-  background-color: #138496; /* Darker shade on hover */
-}
-
-.btn-success {
-  background-color: #28a745; /* Success button color */
-  color: white;
-}
-
-.btn-success:hover {
-  background-color: #218838; /* Darker shade on hover */
-}
-
-.btn-danger {
-  background-color: #dc3545; /* Danger button color */
-  color: white;
-}
-.btn-danger:hover {
-  background-color: #c82333; /* Darker shade on hover */
-}
-
-/* Button Group Spacing */
-.btn-group.btn {
-  margin-right: 5px; /* Space between buttons in a group */
-}
-
-/* Additional Button Effects */
-.btn:focus {
-  outline: none; /* Remove default outline */
-  box-shadow: 0000.2remrgba(0, 123, 255, 0.25); /* Add a soft glow effect */
+.task-card {
+  border: 1px solid #e5e7eb;
 }
