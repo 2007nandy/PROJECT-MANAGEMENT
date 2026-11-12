@@ -1,37 +1,24 @@
-import { useEffect, useState } from "react";
+// src/app.js
+
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "./App.css";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
 
-const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/$/, "");
-
-const api = axios.create({
-  baseURL: API_URL,
-  headers: { "Content-Type": "application/json" },
-});
-
-function App() {
+const App = () => {
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
-  const showSuccess = (message) => {
-    setSuccess(message);
-    window.setTimeout(() => setSuccess(""), 3000);
-  };
-
+  // Fetch tasks
   const fetchTasks = async () => {
     try {
-      setError("");
-      const response = await api.get("/tasks");
+      const response = await axios.get("http://localhost:5000/tasks");
       setTasks(response.data);
     } catch (err) {
-      console.error("Could not fetch tasks:", err);
-      setError("Could not fetch tasks. Check that the Render backend is running and VITE_API_URL is correct.");
-    } finally {
-      setLoading(false);
+      setError("Could not fetch tasks.");
+      console.error(err);
     }
   };
 
@@ -39,127 +26,147 @@ function App() {
     fetchTasks();
   }, []);
 
+  // Create a new task
   const createTask = async () => {
     if (!title.trim()) {
       setError("Task title cannot be empty.");
       return;
     }
+
     try {
-      const response = await api.post("/tasks", { title: title.trim() });
-      setTasks((current) => [...current, response.data]);
-      setTitle("");
-      setError("");
-      showSuccess("Task created successfully!");
+      const response = await axios.post("http://localhost:5000/tasks", { title });
+      setTasks([...tasks, response.data]);
+      setTitle(""); // Clear input
+      setError(null); // Clear error
+      setSuccess("Task created successfully!"); // Show success message
+      setTimeout(() => setSuccess(null), 3000); // Clear success message after 3 seconds
     } catch (err) {
-      console.error("Could not create task:", err);
-      setError(err.response?.data?.message || "Could not create task. Check your backend and database.");
+      setError("Could not create task.");
+      console.error(err);
     }
   };
 
+  // Update task status
   const updateTaskStatus = async (id, newStatus) => {
     try {
-      const response = await api.patch(`/tasks/${id}`, { status: newStatus });
-      setTasks((current) => current.map((task) => task._id === id ? response.data : task));
-      setError("");
-      showSuccess("Task status updated successfully!");
+      const response = await axios.patch(
+        `http://localhost:5000/tasks/${id}`,
+        { status: newStatus }
+      );
+
+      setTasks(tasks.map(task => (task._id === id ? response.data : task))); // Update task in state
+      setSuccess("Task status updated successfully!");
+      setTimeout(() => setSuccess(null), 3000); // Clear success message after 3 seconds
     } catch (err) {
-      console.error("Could not update task:", err);
-      setError(err.response?.data?.message || "Could not update task status.");
+      setError("Could not update task status.");
+      console.error(err);
     }
   };
 
+  // Delete a task
   const deleteTask = async (id) => {
     try {
-      await api.delete(`/tasks/${id}`);
-      setTasks((current) => current.filter((task) => task._id !== id));
-      setError("");
-      showSuccess("Task deleted successfully!");
+      await axios.delete(`http://localhost:5000/tasks/${id}`);
+
+      setTasks(tasks.filter(task => task._id !== id)); // Remove deleted task from state
+      setSuccess("Task deleted successfully!");
+      setTimeout(() => setSuccess(null), 3000); // Clear success message after 3 seconds
     } catch (err) {
-      console.error("Could not delete task:", err);
-      setError(err.response?.data?.message || "Could not delete task.");
+      setError("Could not delete task.");
+      console.error(err);
     }
   };
 
-  const statuses = ["Pending", "Ongoing", "Completed"];
-
   return (
-    <main className="container py-5">
-      <h1 className="text-center mb-4">Task Manager</h1>
+    <div className="container mt-5">
+      <h1 className="text-center">Task Manager</h1>
 
-      {error && <div className="alert alert-danger" role="alert">{error}</div>}
-      {success && <div className="alert alert-success" role="status">{success}</div>}
+      {error && <div className="alert alert-danger">{error}</div>}
+      {/* Show error message */}
 
-      <div className="input-group mb-4">
+      {success && <div className="alert alert-success">{success}</div>}
+      {/* Show success message */}
+
+      <div className="input-group mb-3">
         <input
           type="text"
           className="form-control"
           value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          onKeyDown={(event) => event.key === "Enter" && createTask()}
+          onChange={(e) => setTitle(e.target.value)}
           placeholder="Enter task title"
-          aria-label="Task title"
         />
-        <button className="btn btn-primary" onClick={createTask}>Add Task</button>
+
+        <button className="btn btn-primary" onClick={createTask}>
+          Add Task
+        </button>
       </div>
 
-      {loading ? (
-        <p className="text-center text-muted">Loading tasks...</p>
-      ) : (
-        <div className="row">
-          {statuses.map((status) => {
-            const statusTasks = tasks.filter((task) => task.status === status);
-            return (
-              <section className="col-md-4 mb-3" key={status}>
-                <div className="card h-100">
-                  <div className="card-header">
-                    <h5 className="mb-0">{status} Tasks ({statusTasks.length})</h5>
-                  </div>
-                  <div className="card-body">
-                    {statusTasks.length ? statusTasks.map((task) => (
-                      <TaskCard
-                        key={task._id}
-                        task={task}
-                        onUpdateStatus={updateTaskStatus}
-                        onDelete={deleteTask}
-                      />
-                    )) : (
-                      <p className="text-muted mb-0">No tasks in this category.</p>
-                    )}
-                  </div>
-                </div>
-              </section>
-            );
-          })}
-        </div>
-      )}
-    </main>
-  );
-}
+      <div className="row">
+        {["Pending", "Ongoing", "Completed"].map((status) => (
+          <div className="col-md-4" key={status}>
+            <div className="card mb-4">
+              <div className="card-header">
+                <h5>{status} Tasks</h5>
+              </div>
 
-function TaskCard({ task, onUpdateStatus, onDelete }) {
+              <div className="card-body">
+                {tasks.filter(task => task.status === status).map((task) => (
+                  <TaskCard
+                    key={task._id}
+                    task={task}
+                    onUpdateStatus={updateTaskStatus}
+                    onDelete={deleteTask}
+                  />
+                ))}
+
+                {tasks.filter(task => task.status === status).length === 0 && (
+                  <p className="text-muted">No tasks in this category.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const TaskCard = ({ task, onUpdateStatus, onDelete }) => {
   return (
-    <article className="card task-card mb-3">
+    <div className="card mb-2">
       <div className="card-body">
         <h6 className="card-title">{task.title}</h6>
         <p className="card-text">Status: {task.status}</p>
-        <div className="d-flex flex-wrap gap-2">
+
+        <div className="btn-group" role="group">
           {task.status !== "Ongoing" && (
-            <button className="btn btn-info btn-sm" onClick={() => onUpdateStatus(task._id, "Ongoing")}>
+            <button
+              className="btn btn-info"
+              onClick={() => onUpdateStatus(task._id, "Ongoing")}
+            >
               Mark as Ongoing
             </button>
           )}
+
           {task.status !== "Completed" && (
-            <button className="btn btn-success btn-sm" onClick={() => onUpdateStatus(task._id, "Completed")}>
+            <button
+              className="btn btn-success"
+              onClick={() => onUpdateStatus(task._id, "Completed")}
+            >
               Mark as Completed
             </button>
           )}
-          <button className="btn btn-danger btn-sm" onClick={() => onDelete(task._id)}>
+
+          <button
+            className="btn btn-danger"
+            onClick={() => onDelete(task._id)}
+          >
             Delete Task
           </button>
         </div>
       </div>
-    </article>
+    </div>
   );
-}
+};
 
 export default App;
