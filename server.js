@@ -1,73 +1,94 @@
-const express = require("express");
-const cors = require("cors");
+// server.js
+// server.js
+constexpress=require("express");
+constmongoose=require("mongoose");
+constcors=require("cors");
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+constapp=express();
 
-app.use(cors());
-app.use(express.json());
+// Middleware
+app.use(cors()); // Enable CORS
+app.use(express.json()); // Parse incoming JSON requests
 
-let tasks = [];
-let nextId = 1;
+// Connect to MongoDB (change the connection string as needed)
+mongoose
+  .connect("mongodb://localhost:27017/taskmanager", {})
+  .then(() =>console.log("MongoDB connected"))
+  .catch((err) =>console.log("MongoDB connection error:", err));
 
-app.get("/", (req, res) => {
-  res.send("Project Management Backend Running!");
-});
+// Define Task Schema and Model
+constTaskSchema=newmongoose.Schema(
+  {
+    title:{ type:String, required:true },
+    status: {
+      type:String,
+      enum: ["Pending", "Ongoing", "Completed"],
+      default:"Pending",
+    },
+  },
+  { timestamps:true }
+); // Added timestamps for createdAt and updatedAt
 
-app.get("/tasks", (req, res) => {
-  res.json(tasks);
-});
+constTask=mongoose.model("Task", TaskSchema);
 
-app.post("/tasks", (req, res) => {
-  const { title, description, status } = req.body;
-
-  if (!title) {
-    return res.status(400).json({
-      message: "Task title is required"
-    });
+// Routes
+// Get all tasks
+app.get("/tasks", async (req, res) => {
+  try {
+    consttasks=awaitTask.find(); // Fetch all tasks from the database
+    res.json(tasks); // Send the tasks as JSON response
+  } catch (err) {
+    console.error("Error fetching tasks:", err);
+    res.status(500).json({ message:"Server error. Could not fetch tasks." });
   }
-
-  const newTask = {
-    _id: String(nextId++),
-    title,
-    description: description || "",
-    status: status || "Pending"
-  };
-
-  tasks.push(newTask);
-  res.status(201).json(newTask);
 });
 
-app.patch("/tasks/:id", (req, res) => {
-  const task = tasks.find(
-    (t) => t._id === req.params.id
-  );
-
-  if (!task) {
-    return res.status(404).json({
-      message: "Task not found"
-    });
+// Create a new task
+app.post("/tasks", async (req, res) => {
+  const{ title } =req.body;
+  consttask=newTask({ title }); // Create a new task
+  try {
+    constnewTask=awaittask.save(); // Save task to the database
+    res.status(201).json(newTask); // Respond with the created task
+  } catch (err) {
+    console.error("Error creating task:", err);
+    res.status(400).json({ message:"Invalid data. Could not create task." });
   }
-
-  Object.assign(task, req.body);
-  res.json(task);
 });
 
-app.delete("/tasks/:id", (req, res) => {
-  const index = tasks.findIndex(
-    (t) => t._id === req.params.id
-  );
-
-  if (index === -1) {
-    return res.status(404).json({
-      message: "Task not found"
-    });
+// Update task status
+app.patch("/tasks/:id", async (req, res) => {
+  const{ status } =req.body;
+  try {
+    constupdatedTask=awaitTask.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new:true }
+    ); // Update task and return the updated task
+    if(!updatedTask)
+      returnres.status(404).json({ message:"Task not found." });
+    res.json(updatedTask); // Respond with the updated task
+  } catch (err) {
+    console.error("Error updating task status:", err);
+    res
+      .status(500)
+      .json({ message:"Server error. Could not update task status." });
   }
-
-  tasks.splice(index, 1);
-  res.json({ message: "Task deleted" });
 });
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
+// Delete a task by ID
+app.delete("/tasks/:id", async (req, res) => {
+ try {
+   constdeletedTask=awaitTask.findByIdAndDelete(req.params.id); // Find and delete the task
+   if(!deletedTask)
+     returnres.status(404).json({ message:"Task not found." });
+   res.json({ message:"Task deleted." }); // Respond with a success message
+ } catch (err) {
+   console.error("Error deleting task:", err);
+   res.status(500).json({ message:"Server error. Could not delete task." });
+ }
 });
+
+// Server configuration
+constPORT=process.env.PORT||5000;
+app.listen(PORT, () =>console.log(`Server running on port ${PORT}`));
